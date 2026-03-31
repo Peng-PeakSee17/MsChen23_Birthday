@@ -1,0 +1,11 @@
+{
+  "build": {
+    "env": {
+      "VITE_PLUGIN_VUE": "true"
+    }
+  },
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}
