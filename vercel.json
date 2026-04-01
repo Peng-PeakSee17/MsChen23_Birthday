@@ -1,4 +1,5 @@
 {
+  "name": "birthday-gift-to-cl",
   "build": {
     "env": {
       "VITE_PLUGIN_VUE": "true"
