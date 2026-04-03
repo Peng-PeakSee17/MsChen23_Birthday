@@ -1,5 +1,4 @@
-import { defineEventHandler, readBody, createError } from 'h3'
-import { useStorage } from '#imports'
+import { defineEventHandler, readBody, setCookie, createError } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -9,22 +8,26 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '用户名和密码不能为空' })
   }
 
-  const db = useStorage('data') || { users: [] }
-  if (!db.users) db.users = []
-  
-  // 检查用户是否已存在
-  const existing = db.users.find(u => u.username === username)
-  if (existing) {
-    throw createError({ statusCode: 400, message: '用户名已存在' })
-  }
-
-  // 简单哈希
+  // 简单哈希密码
   const passwordHash = Buffer.from(password).toString('base64')
 
-  // 创建用户
-  const user = { id: Date.now(), username, password: passwordHash, created_at: new Date().toISOString() }
-  db.users.push(user)
-  useStorage('data', db)
+  // 登录/注册二合一：直接用用户名密码生成 token
+  const userId = Date.now()
+  const token = Buffer.from(`${userId}:${username}:${passwordHash}`).toString('base64')
 
-  return { success: true, userId: user.id }
+  // 设置 Cookie
+  setCookie(event, 'auth', token, {
+    maxAge: 60 * 60 * 24 * 7, // 7天
+    httpOnly: false,
+    path: '/'
+  })
+
+  return {
+    success: true,
+    token,
+    user: {
+      id: userId,
+      username: username
+    }
+  }
 })
