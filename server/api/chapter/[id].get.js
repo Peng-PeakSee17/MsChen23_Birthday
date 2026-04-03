@@ -1,20 +1,18 @@
 import { getDb } from '../utils/db'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler((event) => {
   const id = parseInt(getRouterParam(event, 'id'))
-  const db = await getDb()
+  const db = getDb()
   
-  const chapters = db.exec(`SELECT * FROM chapters WHERE id = ${id}`)
-  if (!chapters.length || !chapters[0].values.length) {
+  const chapter = db.prepare(`
+    SELECT c.*, n.title as novel_title 
+    FROM chapters c 
+    JOIN novels n ON c.novel_id = n.id 
+    WHERE c.id = ?
+  `).get(id)
+  
+  if (!chapter) {
     throw createError({ statusCode: 404, message: '章节不存在' })
-  }
-  
-  const chapter = {}
-  chapters[0].columns.forEach((col, i) => chapter[col] = chapters[0].values[0][i])
-  
-  const novels = db.exec(`SELECT title FROM novels WHERE id = ${chapter.novel_id}`)
-  if (novels.length && novels[0].values.length) {
-    chapter.novel_title = novels[0].values[0][0]
   }
   
   return { success: true, chapter }

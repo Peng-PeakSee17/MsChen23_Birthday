@@ -1,37 +1,27 @@
-import initSqlJs from 'sql.js'
+import Database from 'better-sqlite3'
+import { join } from 'path'
 
 let db = null
 
-export async function getDb() {
+export function getDb() {
   if (db) return db
   
-  const SQL = await initSqlJs()
-  
-  // 尝试从 storage 加载已保存的数据
-  const savedData = useStorage('sqlite-data')
-  if (savedData.value) {
-    const data = new Uint8Array(savedData.value)
-    db = new SQL.Database(data)
-  } else {
-    db = new SQL.Database()
-    initTables()
-  }
-  
+  const dbPath = join(process.cwd(), 'data', 'novel.db')
+  db = new Database(dbPath)
+  initDb()
   return db
 }
 
-function initTables() {
-  db.run(`
+function initDb() {
+  db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       avatar TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-  
-  db.run(`
+    );
+
     CREATE TABLE IF NOT EXISTS novels (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -39,10 +29,8 @@ function initTables() {
       description TEXT,
       cover TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-  
-  db.run(`
+    );
+
     CREATE TABLE IF NOT EXISTS chapters (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       novel_id INTEGER NOT NULL,
@@ -51,84 +39,58 @@ function initTables() {
       order_num INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (novel_id) REFERENCES novels(id)
-    )
-  `)
-  
-  db.run(`
+    );
+
     CREATE TABLE IF NOT EXISTS bookshelf (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       novel_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (novel_id) REFERENCES novels(id),
       UNIQUE(user_id, novel_id)
-    )
+    );
   `)
 }
 
-export function saveDb() {
-  if (!db) return
-  const data = db.export()
-  useStorage('sqlite-data', Array.from(data))
-}
-
 export function findOne(table, where) {
-  if (!db) return null
+  const db = getDb()
   const keys = Object.keys(where)
   const values = Object.values(where)
   const whereClause = keys.map(k => `${k} = ?`).join(' AND ')
   const stmt = db.prepare(`SELECT * FROM ${table} WHERE ${whereClause}`)
-  stmt.bind(values)
-  if (stmt.step()) {
-    const row = stmt.getAsObject()
-    stmt.free()
-    return row
-  }
-  stmt.free()
-  return null
+  return stmt.get(...values)
 }
 
 export function getData(table) {
-  if (!db) return []
-  const results = []
-  const stmt = db.prepare(`SELECT * FROM ${table}`)
-  while (stmt.step()) {
-    results.push(stmt.getAsObject())
-  }
-  stmt.free()
-  return results
+  const db = getDb()
+  return db.prepare(`SELECT * FROM ${table}`).all()
 }
 
 export function insert(table, data) {
-  if (!db) return null
+  const db = getDb()
   const keys = Object.keys(data)
   const values = Object.values(data)
   const placeholders = keys.map(() => '?').join(', ')
-  db.run(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`, values)
-  saveDb()
-  
-  // 获取 last insert id
-  const stmt = db.prepare('SELECT last_insert_rowid() as id')
-  stmt.step()
-  const result = stmt.getAsObject()
-  stmt.free()
-  
-  return { ...data, id: result.id }
+  const stmt = db.prepare(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`)
+  const result = stmt.run(...values)
+  return { ...data, id: result.lastInsertRowid }
+}
+
+export function run(sql, params = []) {
+  const db = getDb()
+  const stmt = db.prepare(sql)
+  return stmt.run(...params)
 }
 
 export function query(table, filter = null) {
-  if (!db) return []
+  const db = getDb()
   if (!filter) {
-    return getData(table)
+    return db.prepare(`SELECT * FROM ${table}`).all()
   }
   const keys = Object.keys(filter)
   const values = Object.values(filter)
   const whereClause = keys.map(k => `${k} = ?`).join(' AND ')
-  const results = []
   const stmt = db.prepare(`SELECT * FROM ${table} WHERE ${whereClause}`)
-  stmt.bind(values)
-  while (stmt.step()) {
-    results.push(stmt.getAsObject())
-  }
-  stmt.free()
-  return results
+  return stmt.all(...values)
 }

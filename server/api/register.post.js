@@ -1,4 +1,4 @@
-import { getDb, saveDb } from '../utils/db'
+import { getDb, run } from '../utils/db'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -8,11 +8,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '用户名和密码不能为空' })
   }
 
-  const db = await getDb()
+  const db = getDb()
   
   // 检查用户是否已存在
-  const existing = db.exec(`SELECT id FROM users WHERE username = '${username}'`)
-  if (existing.length && existing[0].values.length) {
+  const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username)
+  if (existing) {
     throw createError({ statusCode: 400, message: '用户名已存在' })
   }
 
@@ -20,10 +20,7 @@ export default defineEventHandler(async (event) => {
   const passwordHash = Buffer.from(password).toString('base64')
 
   // 创建用户
-  db.run(`INSERT INTO users (username, password, created_at) VALUES ('${username}', '${passwordHash}', datetime('now'))`)
-  saveDb()
-  
-  const result = db.exec('SELECT last_insert_rowid()')
+  const result = db.prepare('INSERT INTO users (username, password) VALUES (?, ?)').run(username, passwordHash)
 
-  return { success: true, userId: result[0].values[0][0] }
+  return { success: true, userId: result.lastInsertRowid }
 })
