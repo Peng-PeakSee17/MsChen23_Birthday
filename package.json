@@ -1,5 +1,5 @@
 {
-  "name": "novel-app",
+  "name": "novel-reader",
   "private": true,
   "type": "module",
   "scripts": {
