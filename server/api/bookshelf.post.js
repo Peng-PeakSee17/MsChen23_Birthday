@@ -1,14 +1,14 @@
-import { defineEventHandler, getCookie, readBody, createError } from 'h3'
+import { getDb, saveDb } from '../utils/db'
 
 export default defineEventHandler(async (event) => {
-  const auth = getCookie(event, 'auth')
+  const auth = getHeader(event, 'authorization')
   if (!auth) {
     throw createError({ statusCode: 401, message: '未登录' })
   }
   
-  const decoded = Buffer.from(auth, 'base64').toString()
-  const parts = decoded.split(':')
-  const userId = parseInt(parts[0])
+  const token = auth.replace('Bearer ', '')
+  const decoded = Buffer.from(token, 'base64').toString()
+  const userId = parseInt(decoded.split(':')[0])
   
   const body = await readBody(event)
   const { novelId } = body
@@ -17,19 +17,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '缺少小说ID' })
   }
   
-  const db = useStorage('data') || { bookshelf: [] }
-  if (!db.bookshelf) db.bookshelf = []
+  const db = await getDb()
   
-  const existing = db.bookshelf.find(b => b.user_id === userId && b.novel_id === novelId)
+  // 检查是否已收藏
+  const existing = db.exec(`SELECT id FROM bookshelf WHERE user_id = ${userId} AND novel_id = ${novelId}`)
   
-  if (existing) {
-    const index = db.bookshelf.indexOf(existing)
-    db.bookshelf.splice(index, 1)
-    useStorage('data', db)
+  if (existing.length && existing[0].values.length) {
+    // 取消收藏
+    db.run(`DELETE FROM bookshelf WHERE user_id = ${userId} AND novel_id = ${novelId}`)
+    saveDb()
     return { success: true, inBookshelf: false }
   } else {
-    db.bookshelf.push({ id: Date.now(), user_id: userId, novel_id: novelId, created_at: new Date().toISOString() })
-    useStorage('data', db)
+    // 添加收藏
+    db.run(`INSERT INTO bookshelf (user_id, novel_id, created_at) VALUES (${userId}, ${novelId}, datetime('now'))`)
+    saveDb()
     return { success: true, inBookshelf: true }
   }
 })

@@ -23,7 +23,7 @@
         "../node_modules/unplugin-vue-router/client"
       ],
       "@nuxt/schema": [
-        "../node_modules/@nuxt/schema"
+        "../node_modules/nuxt/node_modules/@nuxt/schema"
       ],
       "nuxt": [
         "../node_modules/nuxt"
@@ -122,7 +122,7 @@
         "./imports"
       ],
       "#app-manifest": [
-        "./manifest/meta/4dd4850a-5c15-4fb6-9626-c65762604a44.json"
+        "./manifest/meta/efb008a8-db1e-4767-958a-f2825a7d7146"
       ],
       "#components": [
         "./components"

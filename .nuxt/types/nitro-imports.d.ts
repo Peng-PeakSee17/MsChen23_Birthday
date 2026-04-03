@@ -48,6 +48,7 @@ declare global {
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
   const getCookie: typeof import('../../node_modules/h3').getCookie
   const getData: typeof import('../../server/utils/db').getData
+  const getDb: typeof import('../../server/utils/db').getDb
   const getHeader: typeof import('../../node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/h3').getHeaders
   const getMethod: typeof import('../../node_modules/h3').getMethod
@@ -88,16 +89,17 @@ declare global {
   const parseCookies: typeof import('../../node_modules/h3').parseCookies
   const promisifyNodeListener: typeof import('../../node_modules/h3').promisifyNodeListener
   const proxyRequest: typeof import('../../node_modules/h3').proxyRequest
+  const query: typeof import('../../server/utils/db').query
   const readBody: typeof import('../../node_modules/h3').readBody
   const readFormData: typeof import('../../node_modules/h3').readFormData
   const readMultipartFormData: typeof import('../../node_modules/h3').readMultipartFormData
   const readRawBody: typeof import('../../node_modules/h3').readRawBody
   const readValidatedBody: typeof import('../../node_modules/h3').readValidatedBody
-  const remove: typeof import('../../server/utils/db').remove
   const removeResponseHeader: typeof import('../../node_modules/h3').removeResponseHeader
   const runTask: typeof import('../../node_modules/nitropack/dist/runtime/internal/task').runTask
   const sanitizeStatusCode: typeof import('../../node_modules/h3').sanitizeStatusCode
   const sanitizeStatusMessage: typeof import('../../node_modules/h3').sanitizeStatusMessage
+  const saveDb: typeof import('../../server/utils/db').saveDb
   const sealSession: typeof import('../../node_modules/h3').sealSession
   const send: typeof import('../../node_modules/h3').send
   const sendError: typeof import('../../node_modules/h3').sendError
@@ -151,4 +153,4 @@ export { defineTask, runTask } from 'nitropack/runtime/internal/task';
 export { defineNitroErrorHandler } from 'nitropack/runtime/internal/error/utils';
 export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from 'C:/Users/86155/exit/birthday-gift-to-cl/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths';
 export { defineAppConfig } from 'C:/Users/86155/exit/birthday-gift-to-cl/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
-export { getData, findOne, insert, remove } from 'C:/Users/86155/exit/birthday-gift-to-cl/server/utils/db';
+export { getDb, saveDb, findOne, getData, insert, query } from 'C:/Users/86155/exit/birthday-gift-to-cl/server/utils/db';

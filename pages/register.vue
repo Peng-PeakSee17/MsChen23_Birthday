@@ -33,25 +33,19 @@ const handleRegister = async () => {
     error.value = '两次密码不一致'
     return
   }
-  if (password.value.length < 6) {
-    error.value = '密码长度至少6位'
-    return
-  }
   
   loading.value = true
   error.value = ''
   
   try {
-    // 直接用登录接口注册（登录注册二合一）
-    const res = await $fetch('/api/login', {
+    const res = await $fetch('/api/register', {
       method: 'POST',
       body: { username: username.value, password: password.value }
     })
     
     if (res.success) {
-      localStorage.setItem('token', res.token)
-      localStorage.setItem('user', JSON.stringify(res.user))
-      navigateTo('/')
+      alert('注册成功，请登录')
+      navigateTo('/login')
     }
   } catch (e) {
     error.value = e.data?.message || '注册失败'

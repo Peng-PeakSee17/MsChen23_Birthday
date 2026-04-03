@@ -38,7 +38,6 @@ const handleLogin = async () => {
     })
     
     if (res.success) {
-      // 保存 token 到 localStorage
       localStorage.setItem('token', res.token)
       localStorage.setItem('user', JSON.stringify(res.user))
       navigateTo('/')
@@ -50,7 +49,6 @@ const handleLogin = async () => {
   }
 }
 
-// 检查是否已登录
 onMounted(() => {
   const token = localStorage.getItem('token')
   if (token) {

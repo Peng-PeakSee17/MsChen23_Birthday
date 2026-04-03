@@ -2,6 +2,10 @@
   <div class="home">
     <header>
       <h1>📚 小说书架</h1>
+      <div class="user-info" v-if="user">
+        <span>{{ user.username }}</span>
+        <button @click="logout">退出</button>
+      </div>
     </header>
     
     <div class="novel-list" v-if="novels.length">
@@ -24,9 +28,16 @@
 </template>
 
 <script setup>
+const user = ref(null)
 const novels = ref([])
 
 onMounted(() => {
+  const userStr = localStorage.getItem('user')
+  if (!userStr) {
+    navigateTo('/login')
+    return
+  }
+  user.value = JSON.parse(userStr)
   fetchNovels()
 })
 
@@ -44,14 +55,22 @@ const fetchNovels = async () => {
 const goToNovel = (id) => {
   navigateTo(`/novel/${id}`)
 }
+
+const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  navigateTo('/login')
+}
 </script>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
 .home { min-height: 100vh; }
-header { background: #4a90d9; color: #fff; padding: 20px; }
+header { background: #4a90d9; color: #fff; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
 header h1 { font-size: 20px; }
+.user-info { display: flex; align-items: center; gap: 10px; }
+.user-info button { padding: 6px 12px; background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 4px; cursor: pointer; }
 .novel-list { padding: 15px; }
 .novel-item { display: flex; background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; }
 .novel-item:active { background: #f0f0f0; }

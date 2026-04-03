@@ -1,15 +1,23 @@
-export default defineEventHandler((event) => {
+import { getDb } from '../utils/db'
+
+export default defineEventHandler(async (event) => {
   const id = parseInt(getRouterParam(event, 'id'))
-  const db = useStorage('data') || { novels: [], chapters: [] }
+  const db = await getDb()
   
-  const novel = db.novels?.find(n => n.id === id)
-  if (!novel) {
+  const novels = db.exec(`SELECT * FROM novels WHERE id = ${id}`)
+  if (!novels.length || !novels[0].values.length) {
     throw createError({ statusCode: 404, message: '小说不存在' })
   }
   
-  const chapters = (db.chapters || [])
-    .filter(c => c.novel_id === id)
-    .sort((a, b) => a.order_num - b.order_num)
+  const novel = {}
+  novels[0].columns.forEach((col, i) => novel[col] = novels[0].values[0][i])
   
-  return { success: true, novel, chapters }
+  const chapters = db.exec(`SELECT * FROM chapters WHERE novel_id = ${id} ORDER BY order_num`)
+  const chaptersList = chapters.length > 0 ? chapters[0].values.map(row => {
+    const obj = {}
+    chapters[0].columns.forEach((col, i) => obj[col] = row[i])
+    return obj
+  }) : []
+  
+  return { success: true, novel, chapters: chaptersList }
 })
