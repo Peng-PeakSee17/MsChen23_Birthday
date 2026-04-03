@@ -5,11 +5,13 @@ export default defineNuxtConfig({
   ssr: false,
   
   nitro: {
-    preset: 'vercel'
+    preset: 'vercel',
+    prerender: {
+      routes: ['/']
+    }
   },
 
   runtimeConfig: {
-    dbPath: './data/novel.db',
     jwtSecret: 'your-secret-key-change-in-production'
   }
 })

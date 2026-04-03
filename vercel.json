@@ -1,12 +1,5 @@
 {
-  "name": "birthday-gift-to-cl",
-  "build": {
-    "env": {
-      "VITE_PLUGIN_VUE": "true"
-    }
-  },
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "name": "novel-app",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "installCommand": "npm install"
 }
