@@ -42,14 +42,16 @@ const handleRegister = async () => {
   error.value = ''
   
   try {
-    const res = await $fetch('/api/register', {
+    // 直接用登录接口注册（登录注册二合一）
+    const res = await $fetch('/api/login', {
       method: 'POST',
       body: { username: username.value, password: password.value }
     })
     
     if (res.success) {
-      alert('注册成功，请登录')
-      navigateTo('/login')
+      localStorage.setItem('token', res.token)
+      localStorage.setItem('user', JSON.stringify(res.user))
+      navigateTo('/')
     }
   } catch (e) {
     error.value = e.data?.message || '注册失败'
