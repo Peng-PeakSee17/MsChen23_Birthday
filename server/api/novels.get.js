@@ -1,8 +1,10 @@
-import { getData } from '../utils/db'
+import { defineEventHandler } from 'h3'
 
-export default defineEventHandler((event) => {
-  const novels = getData('novels').map(novel => {
-    const chapters = getData('chapters').filter(c => c.novel_id === novel.id)
+export default defineEventHandler(() => {
+  const db = useStorage('data') || { novels: [], chapters: [] }
+  
+  const novels = (db.novels || []).map(novel => {
+    const chapters = (db.chapters || []).filter(c => c.novel_id === novel.id)
     return { ...novel, chapter_count: chapters.length }
   })
 

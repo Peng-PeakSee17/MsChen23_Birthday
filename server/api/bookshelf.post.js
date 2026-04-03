@@ -1,4 +1,4 @@
-import { getData, findOne, insert, remove } from '../utils/db'
+import { defineEventHandler, getHeader, readBody, createError } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const auth = getHeader(event, 'authorization')
@@ -17,14 +17,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '缺少小说ID' })
   }
   
+  const db = useStorage('data') || { bookshelf: [] }
+  if (!db.bookshelf) db.bookshelf = []
+  
   // 检查是否已收藏
-  const existing = findOne('bookshelf', { user_id: userId, novel_id: novelId })
+  const existing = db.bookshelf.find(b => b.user_id === userId && b.novel_id === novelId)
   
   if (existing) {
-    remove('bookshelf', existing.id)
+    // 取消收藏
+    const index = db.bookshelf.indexOf(existing)
+    db.bookshelf.splice(index, 1)
+    useStorage('data', db)
     return { success: true, inBookshelf: false }
   } else {
-    insert('bookshelf', { user_id: userId, novel_id: novelId })
+    // 添加收藏
+    db.bookshelf.push({ id: Date.now(), user_id: userId, novel_id: novelId, created_at: new Date().toISOString() })
+    useStorage('data', db)
     return { success: true, inBookshelf: true }
   }
 })

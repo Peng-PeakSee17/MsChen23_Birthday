@@ -11,8 +11,6 @@ import { NuxtModule, ModuleDependencyMeta } from '@nuxt/schema'
       cdnURL: string,
    },
 
-   dbPath: string,
-
    jwtSecret: string,
 
    nitro: {

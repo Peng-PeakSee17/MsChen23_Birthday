@@ -1,4 +1,5 @@
-import { insert, findOne, getData } from '../utils/db'
+import { defineEventHandler, readBody, createError } from 'h3'
+import { useStorage } from '#imports'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -8,8 +9,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '用户名和密码不能为空' })
   }
 
+  const db = useStorage('data') || { users: [] }
+  if (!db.users) db.users = []
+  
   // 检查用户是否已存在
-  const existing = findOne('users', { username })
+  const existing = db.users.find(u => u.username === username)
   if (existing) {
     throw createError({ statusCode: 400, message: '用户名已存在' })
   }
@@ -18,7 +22,9 @@ export default defineEventHandler(async (event) => {
   const passwordHash = Buffer.from(password).toString('base64')
 
   // 创建用户
-  const user = insert('users', { username, password: passwordHash })
+  const user = { id: Date.now(), username, password: passwordHash, created_at: new Date().toISOString() }
+  db.users.push(user)
+  useStorage('data', db)
 
   return { success: true, userId: user.id }
 })

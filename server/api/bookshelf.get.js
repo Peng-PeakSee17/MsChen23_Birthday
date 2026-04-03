@@ -1,4 +1,4 @@
-import { getData, findOne } from '../utils/db'
+import { defineEventHandler, getHeader, createError } from 'h3'
 
 export default defineEventHandler((event) => {
   const auth = getHeader(event, 'authorization')
@@ -10,9 +10,10 @@ export default defineEventHandler((event) => {
   const decoded = Buffer.from(token, 'base64').toString()
   const userId = parseInt(decoded.split(':')[0])
   
-  const bookshelf = getData('bookshelf')
+  const db = useStorage('data') || { bookshelf: [], novels: [] }
+  const bookshelf = (db.bookshelf || [])
     .filter(b => b.user_id === userId)
-    .map(b => findOne('novels', { id: b.novel_id }))
+    .map(b => (db.novels || []).find(n => n.id === b.novel_id))
     .filter(Boolean)
 
   return { success: true, bookshelf }

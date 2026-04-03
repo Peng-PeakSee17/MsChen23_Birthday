@@ -1,4 +1,4 @@
-import { findOne } from '../utils/db'
+import { defineEventHandler, readBody, createError } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -8,8 +8,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '用户名和密码不能为空' })
   }
 
-  const user = findOne('users', { username })
-
+  const db = useStorage('data') || { users: [] }
+  if (!db.users) db.users = []
+  
+  const user = db.users.find(u => u.username === username)
   if (!user) {
     throw createError({ statusCode: 401, message: '用户名或密码错误' })
   }
