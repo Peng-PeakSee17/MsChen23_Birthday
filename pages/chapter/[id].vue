@@ -36,11 +36,6 @@ const chapters = ref([])
 const showMenu = ref(false)
 
 onMounted(() => {
-  const userStr = localStorage.getItem('user')
-  if (!userStr) {
-    navigateTo('/login')
-    return
-  }
   fetchChapter()
 })
 

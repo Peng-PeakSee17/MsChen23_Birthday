@@ -3,9 +3,6 @@
     <header>
       <button @click="goBack">← 返回</button>
       <h1>目录</h1>
-      <button @click="toggleBookshelf" :class="{ added: inBookshelf }">
-        {{ inBookshelf ? '已收藏' : '收藏' }}
-      </button>
     </header>
     
     <div class="novel-info" v-if="novel">
@@ -35,14 +32,8 @@
 const route = useRoute()
 const novel = ref(null)
 const chapters = ref([])
-const inBookshelf = ref(false)
 
 onMounted(() => {
-  const userStr = localStorage.getItem('user')
-  if (!userStr) {
-    navigateTo('/login')
-    return
-  }
   fetchNovel()
 })
 
@@ -65,22 +56,6 @@ const goBack = () => {
 const goToChapter = (id) => {
   navigateTo(`/chapter/${id}`)
 }
-
-const toggleBookshelf = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    const res = await $fetch('/api/bookshelf', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: { novelId: route.params.id }
-    })
-    if (res.success) {
-      inBookshelf.value = !inBookshelf.value
-    }
-  } catch (e) {
-    console.error(e)
-  }
-}
 </script>
 
 <style>
@@ -89,7 +64,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .novel-detail { min-height: 100vh; }
 header { background: #4a90d9; color: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
 header button { background: none; border: none; color: #fff; font-size: 16px; cursor: pointer; }
-header button.added { color: #ffd700; }
 header h1 { font-size: 18px; }
 .novel-info { background: #fff; padding: 20px; margin-bottom: 10px; }
 .novel-info h2 { font-size: 20px; margin-bottom: 10px; }
